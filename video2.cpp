@@ -1,6 +1,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include <iostream>
 
 using namespace cv;
@@ -17,22 +18,58 @@ void mouse(int k, int x, int y, int s, void *p)
     if ( k == EVENT_MOUSEMOVE ) {
 		
 		int radius = 75;
-		cv::Rect region(x-radius, y-radius, radius * 2, radius * 2);
+		Mat m;
+		cv::cvtColor(u->m, m, CV_BGR2GRAY);
+		Mat mask = Mat::zeros(m.size(), CV_8UC1), maskBlur, mc;
 
-		if (0 <= region.x
-			&& 0 <= region.width
-			&& region.x + region.width <= u->m.cols
-			&& 0 <= region.y
-			&& 0 <= region.height
-			&& region.y + region.height <= u->m.rows) {
-			if ( u->cap.isOpened() ) {
+		circle(mask, Point(x, y), radius, Scalar(255), -1);
+
+		Mat negMask;
+
+		bitwise_not(mask, negMask);
+		circle(mask, Point(x, y), radius, Scalar(255), -1);
+
+		Mat md, mdBlur, mdint;
+
+		m.copyTo(md);
+		md.setTo(0, negMask);
+		imshow("mask image", md);
+		md.convertTo(mdint, CV_32S);
+		Size fxy(10, 10);
+		blur(mdint, mdBlur, fxy);
+		mdBlur = mdBlur;
+		mask.convertTo(maskBlur, CV_32S);
+
+		blur(maskBlur, maskBlur, fxy);
+		Mat mskB;
+		mskB.setTo(1, negMask);
+		divide(mdBlur, maskBlur/255, mdBlur);
+
+		mdBlur.convertTo(mc, CV_8U);
+		resize(mc, mc, Size(), 0.5, 0.5);
+		
+		cv::Mat imageROI;
+
+		imageROI = u->m(cv::Rect(0,0,mc.cols, mc.rows));
+		cvtColor(imageROI, imageROI, CV_BGR2GRAY);
+		cv::addWeighted(imageROI, 1.0, mc, 0.3, 0., imageROI);
+
+		imshow("Blur with mask", mc);
+		imshow("asd", imageROI);
+		// mc.copyTo(u->m(cv::Rect(x, y, mc.cols, mc.rows)));
+		// if (0 <= region.x
+		// 	&& 0 <= region.width
+		// 	&& region.x + region.width <= u->m.cols
+		// 	&& 0 <= region.y
+		// 	&& 0 <= region.height
+		// 	&& region.y + region.height <= u->m.rows) {
+		// 	if ( u->cap.isOpened() ) {
 			
-				cv::GaussianBlur(u->m(region), u->m(region), Size(radius, radius), 4);
-            	imshow("i", u->m);
-				waitKey(10);
-			}
+        //     	imshow("i", u->m);
+		// 		waitKey(10);
+		// 	}
 
-		}
+		// }
 	}
 }
 int main(int,char**)
