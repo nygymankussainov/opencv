@@ -2,11 +2,14 @@ NAME = blur
 
 CONFIG = ./options-config.ini
 
-INCLUDES = ./
+INCLUDES = ./includes
+
+SRCDIR = src
+OBJDIR = obj
 
 SOURCES = main.cpp ini_parser.cpp
 
-OBJDIR = obj
+SRC = $(addprefix $(SRCDIR)/, $(SOURCES))
 
 OBJ = $(addprefix $(OBJDIR)/, $(SOURCES:.cpp=.o))
 
@@ -17,12 +20,11 @@ all: obj_dir $(NAME)
 obj_dir:
 	@mkdir -p $(OBJDIR)
 
-$(OBJDIR)/%.o: %.cpp $(CONFIG)
-	g++ -o $@ -c $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(CONFIG)
+	g++ -o $@ -c $< -I $(INCLUDES)
 
 $(NAME): $(OBJ)
 	g++ -o $@ $(OBJ) `pkg-config --cflags --libs opencv`
-
 clean:
 	@/bin/rm -rf $(OBJDIR)
 
