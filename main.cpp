@@ -12,17 +12,10 @@ void mouseCallBack(int event, int x, int y, int, void *p)
     	res = cvCreateImage(cvGetSize(src), 8, 3);
     	roi = cvCreateImage(cvGetSize(src), 8, 1);
 
-
 	    /* prepare the 'ROI' image */
 	    cvZero(roi);
 
-		cvCircle(
-			roi,
-			cvPoint(x, y),
-			data->radius,
-			CV_RGB(255, 255, 255),
-			-1, 8, 0
-    	);
+		cvCircle( roi, cvPoint(x, y), data->radius, CV_RGB(255, 255, 255), -1, 8, 0 );
 
 		/* extract subimage */
 		cvAnd(src, src, res, roi);
@@ -31,9 +24,7 @@ void mouseCallBack(int event, int x, int y, int, void *p)
 		* do the main processing with subimage here.
 		* in this example, we simply invert the subimage
 		*/
-		// cvNot(res, res);
 		cvSmooth(res, res, CV_GAUSSIAN, data->ap_width, data->ap_height, data->sigma1, data->sigma2);
-
 
 		/* 'restore' subimage */
 		IplImage* roi_C3 = cvCreateImage(cvGetSize(src), 8, 3);
@@ -55,6 +46,29 @@ void mouseCallBack(int event, int x, int y, int, void *p)
 	}
 }
 
+void	showVideo(t_data *data) {
+
+	cv::namedWindow("window", CV_WINDOW_AUTOSIZE);
+    cv::setMouseCallback("window", mouseCallBack, data);
+	while ( data->capture.isOpened() ) {
+
+
+		data->capture.read(data->matFrame);
+		if ( data->matFrame.empty() ) {
+			break ;
+		}
+		cv::imshow("window", data->matFrame);
+		int c = cv::waitKey(33);
+		if (c == 27) { // если нажата ESC - выходим
+			break ;
+		}
+		data->matFrame.release();
+	}
+	cv::destroyWindow("window");
+	data->capture.release();
+	data->matFrame.release();
+}
+
 int		main(void) {
 
 	t_data *data = ini_parser();
@@ -72,26 +86,7 @@ int		main(void) {
 		delete data;
 		return 0;
 	}
-
-	cv::namedWindow("window", CV_WINDOW_AUTOSIZE);
-    cv::setMouseCallback("window", mouseCallBack, data);
-	while ( data->capture.isOpened() ) {
-
-
-		data->capture.read(data->matFrame);
-		if ( data->matFrame.empty() ) {
-			break ;
-		}
-		cv::imshow("window", data->matFrame);
-		int c = cvWaitKey(33);
-		if (c == 27) { // если нажата ESC - выходим
-			break ;
-		}
-		data->matFrame.release();
-	}
-	cv::destroyWindow("window");
-	data->capture.release();
-	data->matFrame.release();
+	showVideo(data);
 	delete data;
 	return 0;
 }
