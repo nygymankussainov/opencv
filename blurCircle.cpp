@@ -1,18 +1,13 @@
-#include <opencv2/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv2/imgproc.hpp>
-#include <opencv2/core.hpp>
-#include <iostream>
+#include "data.hpp"
 
-cv::Mat matFrame;
-
-void mouse(int k, int x, int y, int, void *p)
+void mouse(int event, int x, int y, int, void *p)
 {
-    if ( k == CV_EVENT_MOUSEMOVE ) {
+    if ( event == CV_EVENT_MOUSEMOVE ) {
 
+		t_data *data = (t_data *)p;
     	IplImage* src, * res, * roi;
-		src = cvCreateImage(cvSize(matFrame.cols, matFrame.rows), 8, 3);
-		IplImage tmp = matFrame;
+		src = cvCreateImage(cvSize(data->matFrame.cols, data->matFrame.rows), 8, 3);
+		IplImage tmp = data->matFrame;
 		cvCopy(&tmp, src);
     	res = cvCreateImage(cvGetSize(src), 8, 3);
     	roi = cvCreateImage(cvGetSize(src), 8, 1);
@@ -24,7 +19,7 @@ void mouse(int k, int x, int y, int, void *p)
 		cvCircle(
 			roi,
 			cvPoint(x, y),
-			50,
+			data->radius,
 			CV_RGB(255, 255, 255),
 			-1, 8, 0
     	);
@@ -37,7 +32,7 @@ void mouse(int k, int x, int y, int, void *p)
 		* in this example, we simply invert the subimage
 		*/
 		// cvNot(res, res);
-		cvSmooth(res, res, CV_GAUSSIAN, 55);
+		cvSmooth(res, res, CV_GAUSSIAN, data->ap_width, data->ap_height, data->sigma1, data->sigma2);
 
 
 		/* 'restore' subimage */
@@ -50,7 +45,7 @@ void mouse(int k, int x, int y, int, void *p)
 		cvAdd(src, res, res, roi);
 
 		/* show result */
-		cvShowImage("original", res);
+		cvShowImage("window", res);
 		cvWaitKey(10);
 
 	    /* be tidy */
@@ -60,28 +55,43 @@ void mouse(int k, int x, int y, int, void *p)
 	}
 }
 
-int		main(int argc, char **argv) {
+int		main(void) {
 
-	cvNamedWindow("original",CV_WINDOW_AUTOSIZE);
+	t_data *data = ini_parser();
+	if ( !data )
+		return 0;
+	try {
 
-	cv::VideoCapture capture;
-    cv::setMouseCallback("original",mouse, NULL);
-	cv::namedWindow("original", CV_WINDOW_AUTOSIZE);
-	capture.open(argv[1]);
-	while ( capture.isOpened() ) {
+		data->capture.open(data->video);
+		if ( !data->capture.isOpened() )
+			throw "Couldn't open video file";
+	}
+	catch(const char *err) {
 
-
-		capture.read(matFrame);
-		if ( matFrame.empty() ) {
-			break ;
-		}
-		cv::imshow("original", matFrame);
-		char c = cvWaitKey(33);
-		if (c == 27) { // если нажата ESC - выходим
-				break;
-		}
-
+		std::cout << err << std::endl;
+		delete data;
+		return 0;
 	}
 
+	cv::namedWindow("window", CV_WINDOW_AUTOSIZE);
+    cv::setMouseCallback("window", mouse, data);
+	while ( data->capture.isOpened() ) {
+
+
+		data->capture.read(data->matFrame);
+		if ( data->matFrame.empty() ) {
+			break ;
+		}
+		cv::imshow("window", data->matFrame);
+		int c = cvWaitKey(33);
+		if (c == 27) { // если нажата ESC - выходим
+			break ;
+		}
+		data->matFrame.release();
+	}
+	cv::destroyWindow("window");
+	data->capture.release();
+	data->matFrame.release();
+	delete data;
 	return 0;
 }
