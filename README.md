@@ -4,7 +4,7 @@
 
 # Configure
 
-	Edit `options-config.ini` file
+Edit options-config.ini file
 	make
 
 # Run
