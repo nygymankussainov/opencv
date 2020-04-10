@@ -1,4 +1,7 @@
-NAME = blur
+LOG_NOCOLOR = \033[0m
+LOG_GREEN = \033[32m
+
+NAME = mouse_blur
 
 CONFIG = ./options-config.ini
 
@@ -21,10 +24,13 @@ obj_dir:
 	@mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(CONFIG)
-	g++ -o $@ -c $< -I $(INCLUDES)
+	@g++ -o $@ -c $< -I $(INCLUDES)
 
 $(NAME): $(OBJ)
-	g++ -o $@ $(OBJ) `pkg-config --cflags --libs opencv`
+	@g++ -o $@ $(OBJ) `pkg-config --cflags --libs opencv`
+	@echo "$(LOG_GREEN)The program has compiled successfully!$(LOG_NOCOLOR)"
+	@echo "$(LOG_GREEN)Run ./mouse_blur to execute.$(LOG_NOCOLOR)"
+
 clean:
 	@/bin/rm -rf $(OBJDIR)
 

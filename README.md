@@ -8,7 +8,7 @@ Edit `options-config.ini` file and then do `make`
 
 **Run**
 
-	./blur
+	./mouse_blur
 
 **Uninstall**
 

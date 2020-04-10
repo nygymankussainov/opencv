@@ -72,7 +72,7 @@ t_data*	ini_parser(void) {
 	std::string line;
 	while ( std::getline(file, line) ) {
 
-		if ( !line.empty() )
+		if ( !line.empty() && line.find('#') == std::string::npos )
 			parse_line(line, data);
 	}
 	print_data(data);
