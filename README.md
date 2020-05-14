@@ -1,6 +1,6 @@
 **About**
 
-Creates blur effect around mouse-cursor on a video stream
+Creates blur effect around mouse-cursor on a video stream. Written in C++ using OpenCV library.
 
 **Installation**
 
