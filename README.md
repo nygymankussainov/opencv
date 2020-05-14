@@ -1,3 +1,7 @@
+**About**
+
+Creates blur effect around mouse-cursor on a video stream
+
 **Installation**
 
 	make
